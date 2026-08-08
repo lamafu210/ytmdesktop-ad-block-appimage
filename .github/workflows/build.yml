@@ -1,55 +1,43 @@
----
-name: Application Build
+name: Build AppImage
 
 on:
-  - push
-  - pull_request
+  workflow_dispatch:
+  push:
+    branches:
+      - development
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [
-            { name: 'linux',   image: 'ubuntu-latest' },
-            { name: 'windows', image: 'windows-latest' },
-            { name: 'macos',   image: 'macos-latest' }
-          ]
-        arch: [ 'x64', 'arm64' ]
-      fail-fast: false
-          
+    runs-on: ubuntu-22.04
 
-    runs-on: ${{ matrix.os.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x64
+          - arm64
 
     steps:
-      - name: Github checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Corepack Enable Yarn
+      - name: Enable Yarn
         run: corepack enable yarn
 
-      - name: Setup Node (v20)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-data
-          cache: 'yarn'
           node-version: "20.9.0"
+          cache: yarn
 
       - name: Install dependencies
         run: yarn --immutable
 
-      - name: Build (${{ matrix.arch }})
-        # if: matrix.os.image == 'macos-latest'
-        env:
-          YTMD_UPDATE_FEED_OWNER: ${{ vars.YTMD_UPDATE_FEED_OWNER }}
-          YTMD_UPDATE_FEED_REPOSITORY: ${{ vars.YTMD_UPDATE_FEED_REPOSITORY }}
+      - name: Build ${{ matrix.arch }}
         run: yarn make --arch ${{ matrix.arch }}
 
-      - name: Upload artifacts (${{ matrix.arch }})
+      - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.os.name }}-${{ matrix.arch }}
-          path: |
-            out/make/squirrel.windows/${{ matrix.arch }}/*.exe
-            out/make/deb/${{ matrix.arch }}/*.deb
-            out/make/rpm/${{ matrix.arch }}/*.rpm
-            out/make/zip/darwin/${{ matrix.arch }}/*.zip
+          name: AppImage-linux-${{ matrix.arch }}
+          path: out/**/*.AppImage
