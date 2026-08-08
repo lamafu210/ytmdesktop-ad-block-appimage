@@ -10,13 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
-    strategy:
-      fail-fast: false
-      matrix:
-        arch:
-          - x64
-          - arm64
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,11 +26,11 @@ jobs:
       - name: Install dependencies
         run: yarn --immutable
 
-      - name: Build ${{ matrix.arch }}
-        run: yarn make --arch ${{ matrix.arch }}
+      - name: Build
+        run: yarn make --arch x64
 
       - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: AppImage-linux-${{ matrix.arch }}
+          name: AppImage-linux-x64
           path: out/**/*.AppImage
