@@ -23,6 +23,8 @@ jobs:
         run: sudo apt-get install -y libfuse2
       - name: Build
         run: yarn make --arch x64
+      - name: Patch AppImage icon
+        run: bash scripts/patch-appimage.sh
       - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
